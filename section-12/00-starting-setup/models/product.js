@@ -2,23 +2,25 @@ const getDb = require("../util/database").getDb;
 const { ObjectId } = require("mongodb");
 
 class Product {
-  constructor(title, price, description, imageUrl, id) {
+  constructor(title, price, description, imageUrl, id, userId) {
+    console.log("inside constructor:", { id });
     this.title = title;
     this.price = price;
     this.description = description;
     this.imageUrl = imageUrl;
-    this.id = new ObjectId(id);
+    this.id = id ? new ObjectId(id) : null;
+    this.userId = userId;
   }
 
   save() {
     const db = getDb();
     let dbOps;
     if (this.id) {
-      // updated
       dbOps = db
         .collection("products")
         .updateOne({ _id: this.id }, { $set: this });
     } else {
+      console.log("in save method: else part ", this);
       dbOps = db.collection("products").insertOne(this);
     }
     return dbOps
@@ -58,6 +60,20 @@ class Product {
       })
       .catch((err) => {
         console.log("err: ", err);
+      });
+  }
+
+  static deleteById(prodId) {
+    const db = getDb();
+    return db
+      .collection("products")
+      .deleteOne({ _id: new ObjectId(prodId) })
+      .then((result) => {
+        console.log("after deletion");
+        return result;
+      })
+      .catch((err) => {
+        console.log("err in deletion: ", err);
       });
   }
 }
